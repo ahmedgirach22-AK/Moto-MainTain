@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Moto-Maintain: A digital maintenance tracker and cost calculator for 150cc–350cc motorcycles. Track service intervals, compare DIY vs service center costs, and keep a full maintenance log." />
+  <title>Moto-Maintain | Motorcycle Maintenance Tracker</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;900&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <!-- ==================== GARAGE SETUP SCREEN ==================== -->
+  <section id="garage-setup" class="screen active" aria-label="Garage Setup">
+    <div class="setup-bg-grid"></div>
+    <div class="setup-container">
+
+      <div class="setup-logo">
+        <span class="logo-icon">⚙</span>
+        <h1 class="logo-text">MOTO<span class="accent">MAINTAIN</span></h1>
+        <p class="logo-tagline">Digital Garage for the Modern Rider</p>
+      </div>
+
+      <div class="setup-card">
+        <h2 class="setup-title">BUILD YOUR GARAGE</h2>
+        <p class="setup-subtitle">Select your machine and enter your current odometer reading to begin tracking.</p>
+
+        <!-- Step 1: Bike Selection -->
+        <div class="setup-step" id="step-bike-select">
+          <label class="step-label">STEP 01 &mdash; SELECT YOUR MACHINE</label>
+          <div class="bike-selector-grid" id="bike-selector-grid" role="radiogroup" aria-label="Select motorcycle model">
+            <!-- Bikes rendered by JS -->
+          </div>
+        </div>
+
+        <!-- Step 2: Odometer Input -->
+        <div class="setup-step" id="step-odometer">
+          <label class="step-label" for="odometer-input">STEP 02 &mdash; CURRENT ODOMETER (km)</label>
+          <div class="odometer-input-wrap">
+            <span class="odo-unit">KM</span>
+            <input
+              type="number"
+              id="odometer-input"
+              class="odo-input"
+              placeholder="e.g. 15000"
+              min="0"
+              max="999999"
+              aria-required="true"
+              aria-label="Current odometer reading in kilometers"
+            />
+          </div>
+          <p class="input-hint">Enter the reading shown on your instrument cluster right now.</p>
+        </div>
+
+        <button id="btn-start-tracking" class="btn btn-primary btn-large" disabled aria-label="Start tracking your motorcycle maintenance">
+          <span class="btn-icon">🔧</span> START TRACKING
+        </button>
+        <p class="setup-error hidden" id="setup-error" role="alert"></p>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ==================== MAIN APP SCREEN ==================== -->
+  <section id="app-screen" class="screen" aria-label="Main Application">
+
+    <!-- Top Nav -->
+    <header class="app-header" role="banner">
+      <div class="header-logo">
+        <span class="logo-icon-sm">⚙</span>
+        <span class="header-brand">MOTO<span class="accent">MAINTAIN</span></span>
+      </div>
+      <nav class="tab-nav" role="navigation" aria-label="Main navigation">
+        <button class="tab-btn active" data-tab="tracker" id="tab-tracker" aria-selected="true" role="tab">
+          <span class="tab-icon">🔧</span><span class="tab-label">Tracker</span>
+        </button>
+        <button class="tab-btn" data-tab="calculator" id="tab-calculator" aria-selected="false" role="tab">
+          <span class="tab-icon">💰</span><span class="tab-label">Cost Calc</span>
+        </button>
+        <button class="tab-btn" data-tab="log" id="tab-log" aria-selected="false" role="tab">
+          <span class="tab-icon">📋</span><span class="tab-label">Log</span>
+        </button>
+      </nav>
+      <button class="btn btn-ghost btn-sm" id="btn-reset-garage" aria-label="Reset garage and start over" title="Reset Garage">
+        <span>⟳</span> RESET
+      </button>
+    </header>
+
+    <!-- ===== TAB: TRACKER ===== -->
+    <main id="tab-content-tracker" class="tab-content active" role="tabpanel" aria-labelledby="tab-tracker">
+
+      <!-- Bike Info Card -->
+      <div class="bike-info-card" id="bike-info-card">
+        <div class="bike-info-main">
+          <div class="bike-avatar" id="bike-avatar" aria-hidden="true">🏍️</div>
+          <div class="bike-details">
+            <h2 class="bike-name" id="bike-name-display">—</h2>
+            <div class="bike-meta">
+              <span class="meta-chip" id="bike-engine-display">—</span>
+              <span class="meta-chip" id="bike-type-display">—</span>
+            </div>
+          </div>
+        </div>
+        <div class="odometer-section">
+          <div class="odo-display">
+            <span class="odo-label">ODOMETER</span>
+            <span class="odo-value" id="current-odo-display">0</span>
+            <span class="odo-suffix">KM</span>
+          </div>
+          <button class="btn btn-ghost btn-sm" id="btn-update-odo" aria-label="Update odometer reading">
+            ✏ UPDATE KM
+          </button>
+        </div>
+      </div>
+
+      <!-- Status Summary Bar -->
+      <div class="status-summary" id="status-summary" aria-live="polite">
+        <div class="status-chip overdue" id="chip-overdue">
+          <span class="chip-count" id="count-overdue">0</span>
+          <span class="chip-label">OVERDUE</span>
+        </div>
+        <div class="status-chip due-soon" id="chip-due-soon">
+          <span class="chip-count" id="count-due-soon">0</span>
+          <span class="chip-label">DUE SOON</span>
+        </div>
+        <div class="status-chip ok" id="chip-ok">
+          <span class="chip-count" id="count-ok">0</span>
+          <span class="chip-label">OK</span>
+        </div>
+      </div>
+
+      <!-- Tasks Grid -->
+      <div class="tasks-grid" id="tasks-grid" role="list" aria-label="Service tasks">
+        <!-- Rendered by JS -->
+      </div>
+
+    </main>
+
+    <!-- ===== TAB: COST CALCULATOR ===== -->
+    <main id="tab-content-calculator" class="tab-content" role="tabpanel" aria-labelledby="tab-calculator">
+
+      <div class="section-header">
+        <h2 class="section-title">DIY <span class="accent">vs</span> SERVICE CENTER</h2>
+        <p class="section-subtitle">Compare costs for your due maintenance tasks. Check/uncheck tasks to include them in the total.</p>
+      </div>
+
+      <!-- Filter Toggle -->
+      <div class="calc-filter-row">
+        <label class="toggle-wrap" for="toggle-all-tasks">
+          <span class="toggle-label">Show All Tasks</span>
+          <div class="toggle-switch">
+            <input type="checkbox" id="toggle-all-tasks" aria-label="Toggle to show all tasks or only due tasks" />
+            <span class="toggle-slider"></span>
+          </div>
+        </label>
+        <p class="filter-hint" id="filter-hint">Showing due &amp; overdue tasks only</p>
+      </div>
+
+      <!-- Cost Table -->
+      <div class="cost-table-wrap" role="region" aria-label="Cost comparison table">
+        <table class="cost-table" id="cost-table">
+          <thead>
+            <tr>
+              <th class="col-check" aria-label="Include in total"></th>
+              <th class="col-task">SERVICE TASK</th>
+              <th class="col-status">STATUS</th>
+              <th class="col-diy">DIY COST</th>
+              <th class="col-sc">SC COST</th>
+              <th class="col-save">YOU SAVE</th>
+            </tr>
+          </thead>
+          <tbody id="cost-table-body">
+            <!-- Rendered by JS -->
+          </tbody>
+          <tfoot id="cost-table-foot">
+            <!-- Rendered by JS -->
+          </tfoot>
+        </table>
+        <div class="cost-table-empty hidden" id="cost-table-empty">
+          <span class="empty-icon">✅</span>
+          <p>No tasks due right now. Your bike is in great shape!</p>
+        </div>
+      </div>
+
+      <!-- Savings Meter -->
+      <div class="savings-meter-card" id="savings-meter-card">
+        <div class="savings-meter-header">
+          <span class="savings-label">DIY SAVINGS</span>
+          <span class="savings-pct" id="savings-pct">0%</span>
+        </div>
+        <div class="savings-bar-track" role="meter" aria-label="DIY savings percentage" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100" id="savings-bar-track">
+          <div class="savings-bar-fill" id="savings-bar-fill"></div>
+        </div>
+        <div class="savings-amounts">
+          <div class="amount-box">
+            <span class="amount-label">DIY TOTAL</span>
+            <span class="amount-value accent" id="total-diy">₹0</span>
+          </div>
+          <div class="amount-box center">
+            <span class="amount-label">VS</span>
+          </div>
+          <div class="amount-box">
+            <span class="amount-label">SC TOTAL</span>
+            <span class="amount-value" id="total-sc">₹0</span>
+          </div>
+          <div class="amount-box highlight">
+            <span class="amount-label">SAVED</span>
+            <span class="amount-value saved-val" id="total-saved">₹0</span>
+          </div>
+        </div>
+      </div>
+
+    </main>
+
+    <!-- ===== TAB: MAINTENANCE LOG ===== -->
+    <main id="tab-content-log" class="tab-content" role="tabpanel" aria-labelledby="tab-log">
+
+      <div class="section-header log-header">
+        <div>
+          <h2 class="section-title">MAINTENANCE <span class="accent">LOG</span></h2>
+          <p class="section-subtitle">A complete history of all services you've marked as done.</p>
+        </div>
+        <button class="btn btn-ghost btn-sm btn-danger" id="btn-clear-log" aria-label="Clear all maintenance log entries">🗑 CLEAR LOG</button>
+      </div>
+
+      <div class="log-list" id="log-list" role="list" aria-label="Maintenance history">
+        <!-- Rendered by JS -->
+      </div>
+      <div class="log-empty hidden" id="log-empty">
+        <span class="empty-icon">📋</span>
+        <p>No service history yet. Mark a task as done to log it here.</p>
+      </div>
+
+    </main>
+
+  </section>
+
+  <!-- ==================== ODOMETER UPDATE MODAL ==================== -->
+  <div class="modal-overlay hidden" id="odo-modal" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+    <div class="modal-card">
+      <h3 class="modal-title" id="modal-title">UPDATE ODOMETER</h3>
+      <p class="modal-subtitle">Enter your latest odometer reading to recalculate service intervals.</p>
+      <div class="odometer-input-wrap">
+        <span class="odo-unit">KM</span>
+        <input
+          type="number"
+          id="modal-odo-input"
+          class="odo-input"
+          placeholder="e.g. 18500"
+          min="0"
+          max="999999"
+          aria-label="New odometer reading in kilometers"
+        />
+      </div>
+      <p class="modal-error hidden" id="modal-error" role="alert"></p>
+      <div class="modal-actions">
+        <button class="btn btn-ghost" id="btn-modal-cancel">CANCEL</button>
+        <button class="btn btn-primary" id="btn-modal-save">SAVE &amp; UPDATE</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== RESET CONFIRM MODAL ==================== -->
+  <div class="modal-overlay hidden" id="reset-modal" role="dialog" aria-modal="true" aria-labelledby="reset-modal-title">
+    <div class="modal-card">
+      <h3 class="modal-title danger-title" id="reset-modal-title">⚠ RESET GARAGE?</h3>
+      <p class="modal-subtitle">This will permanently erase all your bike data, service history, and settings from this device. This cannot be undone.</p>
+      <div class="modal-actions">
+        <button class="btn btn-ghost" id="btn-reset-cancel">CANCEL</button>
+        <button class="btn btn-danger" id="btn-reset-confirm">YES, RESET EVERYTHING</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification -->
+  <div class="toast hidden" id="toast" role="status" aria-live="polite"></div>
+
+  <script src="app.js"></script>
+</body>
+</html>
