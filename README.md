@@ -34,5 +34,5 @@ While currently functioning as a deterministic tracking tool, the underlying arc
 3.  Double-click `index.html` to open it in any modern web browser. No local server installation is required.
 
 ---
-**Author:** Aaditya Vishwakarma  
-**License:** MIT
+**Author:** Ahmed Girach
+
